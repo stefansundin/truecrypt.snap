@@ -1,0 +1,54 @@
+name: truecrypt
+version: '7.1a-snap-1'
+summary: Easy to use on-the-fly encryption program.
+description: |
+  TrueCrypt is a program for establishing and maintaining an
+  encrypted volume (data storage device). On-the-fly encryption
+  means that data are automatically encrypted or decrypted right
+  before they are loaded or saved, without any user intervention.
+  No data stored on an encrypted volume can be read (decrypted)
+  without using the correct password/keyfile or correct encryption
+  keys. The entire file system is encrypted (i.e., file names,
+  contents of every file, meta data, etc).
+
+grade: devel
+confinement: devmode
+
+apps:
+  truecrypt:
+    command: desktop-launch $SNAP/truecrypt
+    # plugs: [X11, home]
+
+parts:
+  wx:
+    plugin: dump
+    source: https://github.com/wxWidgets/wxWidgets/releases/download/v2.8.12/wxWidgets-2.8.12.tar.gz
+    organize:
+      '*': wx/
+    prime:
+      - -wx
+
+  truecrypt:
+    after: [wx, desktop-gtk2]
+    plugin: make
+    source: https://launchpad.net/~stefansundin/+archive/ubuntu/truecrypt/+files/truecrypt_7.1a.orig.tar.gz
+    prepare: ../../../patch.sh
+    build: |
+      export WX_ROOT=$(pwd)/../../wx/build
+      export PKCS11_INC=$(pwd)/../../../pkcs11
+      VERSION=7.1a-snap-1
+      export TC_EXTRA_CXXFLAGS="-DVERSION_STRING='\"$VERSION\"' -DTC_STR_RELEASED_BY='\"Released by Stefan Sundin\"'"
+      # make WXSTATIC=1 clean
+      make wxbuild
+      make WXSTATIC=1
+    install: |
+      mv Main/truecrypt $SNAPCRAFT_PART_INSTALL/truecrypt
+    build-packages:
+      - pkg-config
+      - libgtk2.0-dev
+      - libfuse-dev
+      - nasm
+      - libappindicator-dev
+    stage-packages:
+      - dmsetup
+      - sudo
