@@ -1,5 +1,5 @@
 name: truecrypt
-version: '7.1a-snap-1'
+version: '7.1a-snap-2'
 summary: Easy to use on-the-fly encryption program.
 description: |
   TrueCrypt is a program for establishing and maintaining an
@@ -17,6 +17,7 @@ confinement: devmode
 apps:
   truecrypt:
     command: desktop-launch $SNAP/truecrypt
+    desktop: usr/share/applications/truecrypt.desktop
     # plugs: [X11, home]
 
 parts:
@@ -36,13 +37,17 @@ parts:
     build: |
       export WX_ROOT=$(pwd)/../../wx/build
       export PKCS11_INC=$(pwd)/../../../pkcs11
-      VERSION=7.1a-snap-1
+      VERSION=7.1a-snap-2
       export TC_EXTRA_CXXFLAGS="-DVERSION_STRING='\"$VERSION\"' -DTC_STR_RELEASED_BY='\"Released by Stefan Sundin\"'"
       # make WXSTATIC=1 clean
       make wxbuild
       make WXSTATIC=1
     install: |
       mv Main/truecrypt $SNAPCRAFT_PART_INSTALL/truecrypt
+      mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/share/doc/truecrypt/"
+      mkdir -p "$SNAPCRAFT_PART_INSTALL/usr/share/pixmaps/"
+      mv "Release/Setup Files/TrueCrypt User Guide.pdf" "$SNAPCRAFT_PART_INSTALL/usr/share/doc/truecrypt/"
+      mv "Resources/Icons/TrueCrypt-48x48.xpm" "$SNAPCRAFT_PART_INSTALL/usr/share/pixmaps/truecrypt.xpm"
     build-packages:
       - pkg-config
       - libgtk2.0-dev
@@ -52,3 +57,10 @@ parts:
     stage-packages:
       - dmsetup
       - sudo
+
+  misc:
+    plugin: dump
+    source: misc
+    organize:
+      truecrypt-indicator.png: usr/share/pixmaps/truecrypt-indicator.png
+      truecrypt.desktop: usr/share/applications/truecrypt.desktop
